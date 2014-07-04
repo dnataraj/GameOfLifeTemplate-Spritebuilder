@@ -21,6 +21,8 @@
     if (self) {
         _timer = [[CCTimer alloc] init];
     }
+    
+    return self;
 }
 
 - (void)play {
