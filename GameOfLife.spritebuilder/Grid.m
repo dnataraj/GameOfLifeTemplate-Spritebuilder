@@ -57,7 +57,7 @@ static const int GRID_COLUMNS = 10;
 }
 
 - (void)touchBegan:(UITouch *)touch withEvent:(UIEvent *)event {
-    // Get the x,y coords for the touch
+    // Get the x,y coords for the touch		
     CGPoint touchLocation = [touch locationInNode:self];
     
     // Get the creature at that location
@@ -74,6 +74,65 @@ static const int GRID_COLUMNS = 10;
     return _gridArray[row][col];
     
 }
+
+- (void)evolveStep {
+    [self countNeighbors];
+    [self updateCreatures];
+    _generation++;
+}
+
+- (void)countNeighbors {
+    for (int i = 0; i < [_gridArray count]; i++) {
+        for (int j = 0; j < [_gridArray[i] count]; j++) {
+            Creature *currentCreature = _gridArray[i][j];
+            currentCreature.livingNeighbors = 0;
+            
+            // examine cells around the current creature
+            for (int x = (i - 1); x <= (i + 1); x++) {
+                for (int y = (j - 1); y <= (j + 1); y++) {
+                    // Check that the cell is not off the screen!
+                    BOOL isIndexValid = [self isIndexValidForX:x andY:y];
+                    
+                    // skip invalid cells and the cell containing the creature
+                    if (!((x == i) && (y == j)) && isIndexValid) {
+                        Creature *neighbor = _gridArray[x][y];
+                        if (neighbor.isAlive) {
+                            currentCreature.livingNeighbors += 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+- (void)updateCreatures {
+    int numAlive = 0;
+    for (int i = 0; i < [_gridArray count]; i++) {
+        for (int j = 0; j < [_gridArray[i] count]; j++) {
+            Creature *currentCreature = _gridArray[i][j];
+            if (currentCreature.livingNeighbors == 3) {
+                currentCreature.isAlive = YES;
+                numAlive += 1;
+            } else if (currentCreature.livingNeighbors <= 1 || currentCreature.livingNeighbors >= 4) {
+                currentCreature.isAlive = NO;
+            }
+        }
+    }
+    
+    _totalAlive = numAlive;
+}
+
+- (BOOL)isIndexValidForX:(int)x andY:(int)y {
+    BOOL isIndexValid = YES;
+    if (x < 0 || y < 0 || x >= GRID_ROWS || y >= GRID_COLUMNS) {
+        isIndexValid = NO;
+    }
+    
+    return isIndexValid;
+}
+
+
 
 
 @end
